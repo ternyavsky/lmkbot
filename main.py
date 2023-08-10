@@ -1,6 +1,6 @@
 import logging
 import fitz
-
+import time
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 from utils import get_shedule, get_color
@@ -32,6 +32,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(content_types=['text'])
 async def color_week(message):
+    start = time.time()
     if message.text == 'Цвет недели':
         a = get_color()
         await message.answer(a)
@@ -50,6 +51,7 @@ async def color_week(message):
                 media.attach_photo(photo=types.InputFile(output), caption=a)
             else:
                 media.attach_photo(photo=types.InputFile(output))
+        end = print(time.time() - start)
         await message.answer_media_group(media=media)
     
 
