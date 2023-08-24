@@ -3,11 +3,16 @@ package utils
 import (
 	"fmt"
 	"image/jpeg"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"slices"
 
 	"github.com/anaskhan96/soup"
 	"github.com/karmdip-mi/go-fitz"
@@ -22,6 +27,8 @@ func GetColor() {
 }
 
 func GetPdf() (result_url_name string, result_url string) {
+	start := time.Now()
+	const BASE_URL = "http://lmk-lipetsk.ru/"
 	const URL = "http://lmk-lipetsk.ru/main_razdel/shedule/index.php"
 	resp, _ := soup.Get(URL)
 	doc := soup.HTMLParse(resp).FindAll("a")
@@ -32,11 +39,26 @@ func GetPdf() (result_url_name string, result_url string) {
 		}
 
 	}
+	pdf, err := os.Create("shedule.pdf")
+	if err != nil {
+		log.Fatal(err, "log pdf")
+	}
+	defer pdf.Close()
+
+	res, err := http.Get(BASE_URL + result_url)
+	if err != nil {
+		log.Fatal(err, "log response")
+	}
+	defer res.Body.Close()
+
+	io.Copy(pdf, res.Body)
+	fmt.Println(time.Since(start), " time GetPdf")
 	return result_url_name, result_url
 
 }
 
 func Convert() []string {
+	start := time.Now()
 
 	var files []string
 	var fileList []string
@@ -74,7 +96,7 @@ func Convert() []string {
 				panic(err)
 			}
 			err = filepath.Walk("../lmkbot/", func(path string, info os.FileInfo, err error) error {
-				if strings.Contains(path, "page-") {
+				if strings.Contains(path, "page-") && !slices.Contains(fileList, path) {
 					fileList = append(fileList, path)
 				}
 				return nil
@@ -93,5 +115,6 @@ func Convert() []string {
 
 		}
 	}
+	fmt.Println(time.Since(start))
 	return fileList
 }

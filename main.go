@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -19,8 +21,6 @@ var kb = tg_api.NewReplyKeyboard(
 )
 
 func main() {
-	utils.Convert()
-
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(".env not found")
 	}
@@ -50,28 +50,36 @@ func main() {
 
 		message := tg_api.NewMessage(update.Message.Chat.ID, "")
 
-		switch update.Message.Command() {
-		case "start":
+		switch update.Message.Text {
+		case "/start":
+			start := time.Now()
 			message.ReplyMarkup = kb
 			message.Text = "Hi !"
+			bot.Send(message)
+			fmt.Println(time.Since(start))
 
-		case "help":
+		case "/shedule":
+			start := time.Now()
 			var ansList []interface{}
+			caption, _ := utils.GetPdf()
 			files := utils.Convert()
-			for _, file := range len(files) {
-				ansList = append(ansList, tg_api.NewInputMediaPhoto(tg_api.FilePath((file))))
+			for i, file := range files {
+				added := tg_api.NewInputMediaPhoto(tg_api.FilePath(file))
+				fmt.Println(i, file)
+				if i == 1 {
+					added.Caption = caption
+					ansList = append(ansList, added)
+				} else {
+					ansList = append(ansList, added)
+				}
 
 			}
 			//text, _ := utils.GetPdf()
 			media_group := tg_api.NewMediaGroup(update.Message.Chat.ID, ansList)
 			message.Text = "sd"
-			bot.SendMediaGroup(media_group)
-			if _, err := bot.Send(message); err != nil {
-				log.Fatal(err)
-			}
+			bot.Send(media_group)
+			fmt.Print(time.Since(start))
 		}
 	}
-
-	// fmt.Println(utils.GetPdf())
 
 }
