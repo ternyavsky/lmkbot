@@ -22,9 +22,6 @@ kb = [
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    """
-    This handler will be called when user sends `/start` or `/help` command
-    """
 
     keyboard = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
     await message.reply(f"Привет, {message.chat.first_name}! Это бот иcип, замены и цвет недели - здесь", reply_markup=keyboard)
