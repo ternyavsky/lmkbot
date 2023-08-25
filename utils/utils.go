@@ -54,7 +54,7 @@ func GetPdf() string {
 
 	io.Copy(pdf, res.Body)
 
-	fmt.Println(time.Since(start), "time GET PDF")
+	fmt.Println(time.Since(start))
 	return result_url_name
 
 }
