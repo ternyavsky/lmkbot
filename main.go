@@ -5,10 +5,9 @@ import (
 	"log"
 	"os"
 	"time"
+	"utils/utils"
 
 	"github.com/joho/godotenv"
-
-	"utils/utils"
 
 	tg_api "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -47,39 +46,36 @@ func main() {
 		if !update.Message.IsCommand() {
 			continue
 		}
-
-		message := tg_api.NewMessage(update.Message.Chat.ID, "")
-
-		switch update.Message.Text {
+		fmt.Println(string(update.Message.Text))
+		start := time.Now()
+		switch string(update.Message.Text) {
 		case "/start":
-			start := time.Now()
+			message := tg_api.NewMessage(update.Message.Chat.ID, "Hi")
 			message.ReplyMarkup = kb
-			message.Text = "Hi !"
 			bot.Send(message)
-			fmt.Println(time.Since(start))
 
-		case "/shedule":
+		case "/schedule":
 			start := time.Now()
-			var ansList []interface{}
-			caption, _ := utils.GetPdf()
-			files := utils.Convert()
-			for i, file := range files {
-				added := tg_api.NewInputMediaPhoto(tg_api.FilePath(file))
-				fmt.Println(i, file)
-				if i == 1 {
-					added.Caption = caption
-					ansList = append(ansList, added)
-				} else {
-					ansList = append(ansList, added)
-				}
+			result := []interface{}{}
+			fileChan := make(chan tg_api.InputMediaPhoto)
+			c2 := make(chan string)
+			go utils.GetPdf(c2)
+			go utils.Convert(fileChan, <-c2)
 
-			}
 			//text, _ := utils.GetPdf()
-			media_group := tg_api.NewMediaGroup(update.Message.Chat.ID, ansList)
-			message.Text = "sd"
+			for {
+				if val, opened := <-fileChan; opened {
+					result = append(result, val)
+				} else {
+					break
+				}
+			}
+			media_group := tg_api.NewMediaGroup(update.Message.Chat.ID, result)
+			fmt.Println(time.Since(start))
 			bot.Send(media_group)
-			fmt.Print(time.Since(start))
+
 		}
+		fmt.Print(time.Since(start))
 	}
 
 }
