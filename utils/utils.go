@@ -24,7 +24,7 @@ func GetColor() {
 
 }
 
-func GetPdf(c chan string) {
+func GetPdf() string {
 	start := time.Now()
 	const BASE_URL = "http://lmk-lipetsk.ru/"
 	const URL = "http://lmk-lipetsk.ru/main_razdel/shedule/index.php"
@@ -53,13 +53,16 @@ func GetPdf(c chan string) {
 	defer res.Body.Close()
 
 	io.Copy(pdf, res.Body)
-	fmt.Println(time.Since(start), " time GetPdf")
-	c <- result_url_name
+
+	fmt.Println(time.Since(start), "time GET PDF")
+	return result_url_name
 
 }
 
 func Convert(c chan tgbotapi.InputMediaPhoto, cap string) {
+
 	start := time.Now()
+
 	doc, err := fitz.New("../lmkbot/shedule.pdf")
 	if err != nil {
 		panic(err)
@@ -96,5 +99,6 @@ func Convert(c chan tgbotapi.InputMediaPhoto, cap string) {
 		f.Close()
 
 	}
+
 	fmt.Println(time.Since(start), " convert")
 }

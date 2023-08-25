@@ -58,21 +58,20 @@ func main() {
 			start := time.Now()
 			result := []interface{}{}
 			fileChan := make(chan tg_api.InputMediaPhoto)
-			c2 := make(chan string)
-			go utils.GetPdf(c2)
-			go utils.Convert(fileChan, <-c2)
-
-			//text, _ := utils.GetPdf()
-			for {
-				if val, opened := <-fileChan; opened {
-					result = append(result, val)
-				} else {
-					break
+			cap := utils.GetPdf()
+			go utils.Convert(fileChan, cap)
+			go func() {
+				for {
+					if val, opened := <-fileChan; opened {
+						result = append(result, val)
+					} else {
+						break
+					}
 				}
-			}
-			media_group := tg_api.NewMediaGroup(update.Message.Chat.ID, result)
-			fmt.Println(time.Since(start))
-			bot.Send(media_group)
+				media_group := tg_api.NewMediaGroup(update.Message.Chat.ID, result)
+				fmt.Println(time.Since(start))
+				bot.Send(media_group)
+			}()
 
 		}
 		fmt.Print(time.Since(start))
